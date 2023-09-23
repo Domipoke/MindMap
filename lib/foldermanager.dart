@@ -46,6 +46,8 @@ Future<Widget> getFileinFolder() async {
     List<DataRow> files = [];
     List<FileSystemEntity> li = dir.listSync();
     DateFormat df = DateFormat("dd/MM/yyyy");
+    TextStyle nameStyle = TextStyle();
+    TextStyle infoStyle = TextStyle();
     for (FileSystemEntity fse in li) {
       if (await fse.exists()) {
         String fp = fse.path.split("/").last;
@@ -56,15 +58,9 @@ Future<Widget> getFileinFolder() async {
         
         
         files.add(DataRow(cells: [
-          DataCell(Text(fname, style: TextStyle(
-
-          ))),
-          DataCell(Text(lastOpened(dtmod), style: TextStyle(
-
-          ))),
-          DataCell(Text(ftype, style: TextStyle(
-
-          )))
+          DataCell(Text(fname, style: nameStyle)),
+          DataCell(Text(lastOpened(dtmod), style: infoStyle)),
+          DataCell(Text(ftype, style: infoStyle))
         ]));
       }
     }

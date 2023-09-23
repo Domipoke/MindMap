@@ -37,8 +37,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   path_provider: any
   shared_preferences: any
-  open_file: any
-  file_picker: any
+  #open_file: ^lastVersion 
+  file_picker: ^2.1.0
   intl: any
 
 dev_dependencies:

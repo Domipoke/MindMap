@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:map/Expandable.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:open_file/open_file.dart';
+//import 'package:open_file/open_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:map/foldermanager.dart' as FolderManager;
 
@@ -95,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     }, child: const Text("New"))
                   ],
                   content: Row(children: [TextButton(onPressed: () async {
-                    String result = await FilePicker.platform.getDirectoryPath(dialogTitle: "Seleziona una cartella")??(await getTemporaryDirectory()).path;
+                    String result = await FilePicker.platform.getDirectoryPath()??(await getTemporaryDirectory()).path;
                     SharedPreferences sh =await SharedPreferences.getInstance();
                     if (await sh.setString("path",result)) {
                       first_check_path=true;
@@ -105,14 +105,14 @@ class _MyHomePageState extends State<MyHomePage> {
               }
             }
           }
-          return FutureBuilder(future:FolderManager.getFileinFolder(),builder: (ctx,sn) => {
+          return FutureBuilder(future:FolderManager.getFileinFolder(),builder: (ctx,sn) {
             if (sn.hasData) {
               return Column(children: [
 
               ]);
             }
-            return Column(children: [])
-          })
+            return Column(children: []);
+          });
         },
       ),
       floatingActionButton: ExpandableFab(distance: 50, children: [
