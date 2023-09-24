@@ -35,44 +35,46 @@ void newFile(BuildContext ctx,String type,String name)async {
 Future<Widget> getFileinFolder() async {
   SharedPreferences sh = await SharedPreferences.getInstance();
   String? st = sh.getString("path");
+  //Get dir from st (path)
+  Directory dir;
   if (st!=null) {
-    //Get dir from st (path)
-    Directory dir = Directory(st);
-    if (!await dir.exists()) {
-      await sh.remove("path");
-      return Text("error"); // Error Text with button to change folder
-    } 
-    // Get files
-    List<DataRow> files = [];
-    List<FileSystemEntity> li = dir.listSync();
-    DateFormat df = DateFormat("dd/MM/yyyy");
-    TextStyle nameStyle = TextStyle();
-    TextStyle infoStyle = TextStyle();
-    for (FileSystemEntity fse in li) {
-      if (await fse.exists()) {
-        String fp = fse.path.split("/").last;
-        String fname = fp.split(".").first;
-        String ftype = fp.split(".")[1];
-        DateTime dtmod = fse.statSync().modified;
-        
-        
-        
-        files.add(DataRow(cells: [
-          DataCell(Text(fname, style: nameStyle)),
-          DataCell(Text(lastOpened(dtmod), style: infoStyle)),
-          DataCell(Text(ftype, style: infoStyle))
-        ]));
-      }
-    }
-    // Split by "." [name,type,ext]
-    // for each file create a row that contains a Text: Name, 
-    return DataTable(columns: [
-      DataColumn(label: Text("Name")),
-      DataColumn(label: Text("Type")),
-      DataColumn(label: Text("Data")),
-    ], rows: files);
+    dir = Directory(st);
+  } else {
+    dir = await getApplicationDocumentsDirectory();
   }
-  return Text("error");
+  if (!await dir.exists()) {
+    await sh.remove("path");
+    return const Text("error"); // Error Text with button to change folder
+  } 
+  // Get files
+  List<DataRow> files = [];
+  List<FileSystemEntity> li = dir.listSync();
+  DateFormat df = DateFormat("dd/MM/yyyy");
+  TextStyle nameStyle = TextStyle();
+  TextStyle infoStyle = TextStyle();
+  for (FileSystemEntity fse in li) {
+    if (await fse.exists()) {
+      String fp = fse.path.split("/").last;
+      String fname = fp.split(".").first;
+      String ftype = fp.split(".")[1];
+      DateTime dtmod = fse.statSync().modified;
+      
+      
+      
+      files.add(DataRow(cells: [
+        DataCell(Text(fname, style: nameStyle)),
+        DataCell(Text(lastOpened(dtmod), style: infoStyle)),
+        DataCell(Text(ftype, style: infoStyle))
+      ]));
+    }
+  }
+  // Split by "." [name,type,ext]
+  // for each file create a row that contains a Text: Name, 
+  return DataTable(columns: const [
+    DataColumn(label: Text("Name")),
+    DataColumn(label: Text("Type")),
+    DataColumn(label: Text("Data")),
+  ], rows: files);
 }
 
 

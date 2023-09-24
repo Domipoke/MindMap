@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map/Expandable.dart';
+import 'package:map/colors.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 //import 'package:open_file/open_file.dart';
@@ -17,8 +18,10 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    
     return MaterialApp(
       title: 'Map',
+      themeMode: ThemeMode.system,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -29,9 +32,24 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        
+        appBarTheme: const AppBarTheme(
+          foregroundColor: Palette.orange,
+          backgroundColor: Palette.whitesmoke//Color.fromARGB(255,  250, 249, 246),
+        )
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      darkTheme: ThemeData(
+        scaffoldBackgroundColor: Palette.black22,
+        appBarTheme: const AppBarTheme(
+          foregroundColor: Palette.orange,
+          backgroundColor: Palette.black12
+        ),
+        dataTableTheme: const DataTableThemeData(
+          headingTextStyle: TextStyle(
+            color: Palette.orange,
+          ),
+        )
+      ),
+      home: const MyHomePage(title: 'MAP'),
     );
   }
 }
@@ -57,13 +75,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   bool first_check_path = false;
-  
+  bool dialog_showed = false;
   void change() {
     
-  }
-  Future<String?> checkPath(BuildContext ctx) async {
-    SharedPreferences sh = await SharedPreferences.getInstance();
-    return sh.getString("path");
   }
   @override
   Widget build(BuildContext context) {
@@ -78,43 +92,13 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
-        backgroundColor: Colors.white,
       ),
-      body: FutureBuilder(
-        builder: (context, snap){
-          if (!first_check_path) {
-            if (snap.hasData) {
-              if (snap.data==null) {
-                showDialog(context: context, builder: (context)=>AlertDialog(
-                  actions: [
-                    TextButton(onPressed: ()=>{
-
-                    }, child: const Text("Close")),
-                    TextButton(onPressed: ()=>{
-                      
-                    }, child: const Text("New"))
-                  ],
-                  content: Row(children: [TextButton(onPressed: () async {
-                    String result = await FilePicker.platform.getDirectoryPath()??(await getTemporaryDirectory()).path;
-                    SharedPreferences sh =await SharedPreferences.getInstance();
-                    if (await sh.setString("path",result)) {
-                      first_check_path=true;
-                    }
-                  }, child: const Text("Seleziona una cartella"))])
-                ));
-              }
-            }
-          }
-          return FutureBuilder(future:FolderManager.getFileinFolder(),builder: (ctx,sn) {
-            if (sn.hasData) {
-              return Column(children: [
-
-              ]);
-            }
-            return Column(children: []);
-          });
-        },
-      ),
+      body: FutureBuilder(future:FolderManager.getFileinFolder(),builder: (ctx,sn) {
+        if (sn.hasData) {
+          return SingleChildScrollView(child: sn.data);
+        }
+        return const Center(child: CircularProgressIndicator(color: Colors.red));
+      }),
       floatingActionButton: ExpandableFab(distance: 50, children: [
         IconButton(
           onPressed: () => {
@@ -138,3 +122,45 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+/**
+ FutureBuilder(
+        future: checkPath(context),
+        builder: (ctx, snap){
+          debugPrint(snap.data);
+          if (!first_check_path) {
+            if (snap.hasData) {
+              if (snap.data==null) {
+                if (!dialog_showed) {
+                  showDialog(context: context, builder: (context)=>AlertDialog(
+                    actions: [
+                      TextButton(onPressed: ()=>{
+
+                      }, child: const Text("Close")),
+                      TextButton(onPressed: ()=>{
+                        
+                      }, child: const Text("New"))
+                    ],
+                    content: Row(children: [TextButton(onPressed: () async {
+                      String result = await FilePicker.platform.getDirectoryPath()??(await getTemporaryDirectory()).path;
+                      SharedPreferences sh =await SharedPreferences.getInstance();
+                      if (await sh.setString("path",result)) {
+                        first_check_path=true;
+                      }
+                    }, child: const Text("Seleziona una cartella"))])
+                  ));
+                  
+                }
+              }
+            }
+            return const Center(child: CircularProgressIndicator());
+          }
+          return FutureBuilder(future:FolderManager.getFileinFolder(),builder: (ctx,sn) {
+            if (sn.hasData) {
+              return Center(child:  sn.data);
+            }
+            return const Center(child: CircularProgressIndicator(color: Colors.red));
+          });
+        },
+      )
+  
+ */
