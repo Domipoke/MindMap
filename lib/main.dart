@@ -100,6 +100,11 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          IconButton(onPressed: () {
+            setState(() {});
+          }, icon: const Icon(Icons.refresh))
+        ],
       ),
       body: FutureBuilder(future: checkPerm(), builder: (c, AsyncSnapshot s) {
         if (s.connectionState==ConnectionState.done) {

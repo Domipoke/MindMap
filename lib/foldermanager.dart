@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:map/navigation.dart';
 import 'package:path/path.dart' show join;
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +23,8 @@ String getStringType(FileType t) {
       return "none";
   }
 }
-RegExp invalidFName = RegExp(r"^[a-zA-Z0-9- ]");
-void dialogNewFile(BuildContext ctx,FileType type, {String? err}) {
+RegExp invalidFName = RegExp(r"[^a-zA-Z0-9- ]");
+void dialogNewFile(BuildContext ctx,FileType type, {String? err,bool tobeopen = true}) {
   TextEditingController tec = TextEditingController();
   GlobalKey<FormState> fnformKey =  GlobalKey<FormState>();
   showDialog(context: ctx, builder: (context)=>AlertDialog(
@@ -33,42 +34,64 @@ void dialogNewFile(BuildContext ctx,FileType type, {String? err}) {
       }, child: const Text("Close")),
       TextButton(onPressed: (){
         if (fnformKey.currentState!.validate()) {
-          newFile(ctx, type,tec.text.replaceAll(" ", "_"));
+          newFile(ctx, type,tec.text.trim().replaceAll(" ", "_"),tobeopen: tobeopen);
           Navigator.of(context).pop();
         }
       }, child: const Text("New"))
     ],
-    content: TextFormField(
+    content: Form(
       key: fnformKey,
-      controller: tec,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Il campo non può essere vuoto';
-        }
-        if (invalidFName.hasMatch(value)) {
-          return 'Caratteri non validi. Puoi usare solo lettere, numeri, spazi vuoti e trattini';
-        }
-        return null;
-      },
-      
+      child: TextFormField(
+        controller: tec,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Il campo non può essere vuoto';
+          }
+          if (invalidFName.hasMatch(value)) {
+            return 'Caratteri non validi. Puoi usare solo lettere, numeri, spazi vuoti e trattini';
+          }
+          return null;
+        },
+        
+      ),
     ),
   ));
 }
 
-void newFile(BuildContext ctx,FileType type,String name)async {
+void newFile(BuildContext ctx,FileType type,String name, {bool tobeopen = true})async {
   // GET Folder path
   Directory dir = await getDir();
   //Scan file in folder
-  File f = File("$dir/$name.$type.$ext");
+  File f = File("${dir.path}/$name.${getStringType(type)}.$ext");
   // check if in this folder is there a file called name.type.[ext]
   if (f.existsSync()) {
     // error // No File was created
     // if true return to dialogNewFile(ctx,type, "Il file già esiste")
   } else {
     // if false create new file called name.type.[ext]
-    f.createSync(exclusive: true);
+    await f.create(exclusive: true);
   }
-  
+
+  if (tobeopen) {
+    if (f.existsSync()) {
+      switch (type) {
+        
+        case FileType.none:
+          // TODO: Handle this case.
+          break;
+        case FileType.map:
+          toEditViewMap(ctx, f);
+          break;
+        case FileType.timeline:
+          toEditViewTimeline(ctx, f);
+
+          break;
+        case FileType.doc:
+          toEditViewDoc(ctx, f);
+          break;
+      }
+    }
+  }  
   
 }
 
@@ -98,8 +121,8 @@ Future<Widget> getFileinFolder() async {
   // for each file create a row that contains a Text: Name, 
   return DataTable(columns: const [
     DataColumn(label: Text("Name")),
-    DataColumn(label: Text("Type")),
     DataColumn(label: Text("Data")),
+    DataColumn(label: Text("Type")),
   ], rows: files);
 }
 
@@ -122,12 +145,9 @@ String lastOpened(DateTime from) {
   }
   return DateFormat("dd/MM/yyyy").format(from);
 }
-void checkPermissions()async {
-  
-}
+
 
 Future<Directory> getDir() async{
-  checkPermissions();
   SharedPreferences sh = await SharedPreferences.getInstance();
   String? st = sh.getString("path");
   //Get dir from st (path)
@@ -138,7 +158,12 @@ Future<Directory> getDir() async{
       return dir;
     } else {dir=await getApplicationDocumentsDirectory();}
   } else {dir=await getApplicationDocumentsDirectory();}
-  if (dir.path.endsWith("maps")) {return dir;}
-  else {dir=Directory(join(dir.path,"maps")); if (dir.existsSync()) {return dir;} else {dir.createSync();return dir;}}
+  Directory mdir=Directory("${dir.path}/maps"); 
+  if (mdir.existsSync()) {
+    return mdir;
+  } else {
+    mdir.createSync();
+    return mdir;
+  }
 }
 
