@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:map/Expandable.dart';
 import 'package:map/colors.dart';
@@ -6,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 //import 'package:open_file/open_file.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:map/foldermanager.dart' as FolderManager;
+import 'package:permission_handler/permission_handler.dart';
 
 
 void main() {
@@ -47,6 +49,10 @@ class MyApp extends StatelessWidget {
           headingTextStyle: TextStyle(
             color: Palette.orange,
           ),
+          decoration: BoxDecoration(
+            color: Color(0x1EFFFFFF),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(100/8))
+          )
         )
       ),
       home: const MyHomePage(title: 'MAP'),
@@ -73,11 +79,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  bool first_check_path = false;
-  bool dialog_showed = false;
-  void change() {
-    
+
+  
+  Future<void> checkPerm() async {
+    await [
+      Permission.location,
+      Permission.storage,
+    ].request();
   }
   @override
   Widget build(BuildContext context) {
@@ -93,28 +101,33 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: FutureBuilder(future:FolderManager.getFileinFolder(),builder: (ctx,sn) {
-        if (sn.hasData) {
-          return SingleChildScrollView(child: sn.data);
+      body: FutureBuilder(future: checkPerm(), builder: (c, AsyncSnapshot s) {
+        if (s.connectionState==ConnectionState.done) {
+          return FutureBuilder(future: FolderManager.getFileinFolder(),builder: (ctx,sn) {
+            if (sn.hasData) {
+              return Padding(padding: const EdgeInsets.all(16), child: sn.data);
+            }
+            return const Center(child: CircularProgressIndicator(color: Colors.red));
+          });
         }
-        return const Center(child: CircularProgressIndicator(color: Colors.red));
-      }),
-      floatingActionButton: ExpandableFab(distance: 50, children: [
+        return const Text("");
+      },),
+      floatingActionButton: ExpandableFab(distance: 75, children: [
         IconButton(
-          onPressed: () => {
-            
+          onPressed: () {
+            FolderManager.dialogNewFile(context, FolderManager.FileType.map);
           },
           icon: const Icon(Icons.rectangle_outlined),
         ),
         IconButton(
-          onPressed: () => {
-
+          onPressed: () {
+            FolderManager.dialogNewFile(context, FolderManager.FileType.timeline);
           },
           icon: const Icon(Icons.arrow_forward),
         ),
         IconButton(
-          onPressed: () => {
-
+          onPressed: () {
+            FolderManager.dialogNewFile(context, FolderManager.FileType.doc);
           },
           icon: const Icon(Icons.edit_document),
         ),
