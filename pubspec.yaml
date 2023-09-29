@@ -41,6 +41,7 @@ dependencies:
   file_picker: ^2.1.0
   intl: any
   permission_handler: any
+  xml: any
 
 dev_dependencies:
   flutter_test:

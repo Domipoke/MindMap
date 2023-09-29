@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import "package:path_provider/path_provider.dart";
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xml/xml.dart';
 
 const String ext = "mindmap";
 
@@ -71,11 +72,13 @@ void newFile(BuildContext ctx,FileType type,String name, {bool tobeopen = true})
     // if false create new file called name.type.[ext]
     await f.create(exclusive: true);
   }
-
+  String s = await f.readAsString();
+  if (s.isEmpty) {
+    f.writeAsString("<MapFile></MapFile>");
+  }
   if (tobeopen) {
     if (f.existsSync()) {
       switch (type) {
-        
         case FileType.none:
           // TODO: Handle this case.
           break;
